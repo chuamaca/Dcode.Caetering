@@ -1,0 +1,82 @@
+﻿@page "/local/list"
+@using Dcode.Caetering.Application.Dto
+@using Dcode.Caetering.Application.HttpServices
+
+@if (isLoading)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else if (errorMessage != null)
+{
+    <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+}
+else if (!locals.Any())
+{
+    <MudText>No hay datos disponibles.</MudText>
+}
+else
+{
+    <MudTable Items="locals" Hover="true" SortLabel="Sort By" Elevation="0" AllowUnsorted="false">
+        <HeaderContent>
+            <MudTh>Nombre</MudTh>
+            <MudTh>Dirección</MudTh>
+            <MudTh>Capacidad</MudTh>
+            <MudTh>Fotos</MudTh>
+            <MudTh>Términos y Condiciones</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Nombre">@context.Nombre</MudTd>
+            <MudTd DataLabel="Dirección">@context.Direccion</MudTd>
+            <MudTd DataLabel="Capacidad">@context.Capacidad</MudTd>
+            <MudTd DataLabel="Fotos">@context.Fotos</MudTd>
+            <MudTd DataLabel="Términos y Condiciones">@context.TerminosCondiciones</MudTd>
+        </RowTemplate>
+
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new int[]{50, 100}" />
+        </PagerContent>
+    </MudTable>
+}
+
+@code {
+    private List<LocalDto> locals = new();
+    private bool isLoading = true;
+    private string errorMessage = null;
+    [Inject]
+    private LocalHttService localHttpService { get; set; } = default;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLocalAll();
+    }
+
+    private async Task LoadLocalAll()
+    {
+        try
+        {
+            var response = await localHttpService.GetLocalAsync();
+            if (response.Success && response.Data != null)
+            {
+                locals = response.Data.ToList();
+            }
+            else
+            {
+                NoData();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void NoData()
+    {
+        locals = new();
+    }
+}
