@@ -8,7 +8,6 @@ builder.Services.AddMudServices();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-
 builder.Services.AddServiceCollectionApp().
     AddServicesApplication(builder.Configuration);
 

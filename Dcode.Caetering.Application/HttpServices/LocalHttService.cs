@@ -1,10 +1,4 @@
-﻿using Dcode.Caetering.Application.Constante;
-using Dcode.Caetering.Application.Dto;
-using Dcode.Caetering.Application.ResponseUtils;
-using Dcode.Caetering.Application.Utils;
-using System.Net.Http.Json;
-
-namespace Dcode.Caetering.Application.HttpServices
+﻿namespace Dcode.Caetering.Application.HttpServices
 {
     public class LocalHttService(IHttpClientFactory httpClientFactory)
     {
@@ -17,7 +11,7 @@ namespace Dcode.Caetering.Application.HttpServices
 
         public async Task<Response<IEnumerable<LocalDto>>> GetInternalLocalById(int localId)
         {
-            var responses = await _httpClient.GetFromJsonAsync<Response<IEnumerable<LocalDto>>>($"api/Local/get-by-id/{localId}");
+            var responses = await _httpClient.GetFromJsonAsync<Response<IEnumerable<LocalDto>>>($"api/v1/local/get-by-id/{localId}");
             return responses ?? new Response<IEnumerable<LocalDto>> { NoData = true, Success = false, Message = DATARESPONSE.NO_DATA };
         }
 
@@ -43,8 +37,6 @@ namespace Dcode.Caetering.Application.HttpServices
                     Message = ex.Message.ToString()
 
                 };
-
-
             }
         }
 
