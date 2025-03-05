@@ -20,5 +20,8 @@ namespace Dcode.Caetering.Application.Dto
 
         public string TerminosCondiciones { get; set; }
 
+        public virtual ICollection<Evento> Evento { get; set; } = new List<Evento>();
+
     }
+
 }

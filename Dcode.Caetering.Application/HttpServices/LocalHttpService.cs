@@ -6,7 +6,7 @@ using System.Net.Http.Json;
 
 namespace Dcode.Caetering.Application.HttpServices
 {
-    public class LocalHttService(IHttpClientFactory httpClientFactory)
+    public class LocalHttpService(IHttpClientFactory httpClientFactory)
     {
         private readonly HttpClient _httpClient = httpClientFactory.CreateClient("CAETERINGAPI");
 

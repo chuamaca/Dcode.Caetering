@@ -2,6 +2,8 @@
 @using Dcode.Caetering.Application.Dto
 @using Dcode.Caetering.Application.HttpServices
 
+@* MudTable Sencillo*@
+
 @if (isLoading)
 {
     <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
@@ -43,7 +45,7 @@ else
     private bool isLoading = true;
     private string errorMessage = null;
     [Inject]
-    private LocalHttService localHttpService { get; set; } = default;
+    private LocalHttpService localHttpService { get; set; } = default;
 
 
     protected override async Task OnInitializedAsync()

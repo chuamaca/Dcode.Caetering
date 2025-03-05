@@ -1,0 +1,171 @@
+﻿@page "/busqueda"
+@using Dcode.Caetering.Application.Dto
+
+@* MudTable con ServerReload con Busqueda Template*@ 
+<MudTable ServerData="ServerReload" Dense="true" Hover="true" @ref="table">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Listado de Locales</MudText>
+        <MudSpacer />
+        <MudTextField T="string" ValueChanged="@(s=>OnSearch(s))" Placeholder="Search" Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh><MudTableSortLabel SortLabel="Nombre" T="LocalDto">Nombre</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="Direccion" T="LocalDto">Dirección</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="Capacidad" T="LocalDto">Capacidad</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="Fotos" T="LocalDto">Fotos</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="TerminosCondiciones" T="LocalDto">Términos y Condiciones</MudTableSortLabel></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Nombre">@context.Nombre</MudTd>
+        <MudTd DataLabel="Dirección">@context.Direccion</MudTd>
+        <MudTd DataLabel="Capacidad">@context.Capacidad</MudTd>
+        <MudTd DataLabel="Fotos">@context.Fotos</MudTd>
+        <MudTd DataLabel="Términos y Condiciones">@context.TerminosCondiciones</MudTd>
+    </RowTemplate>
+    <NoRecordsContent>
+        <MudText>No se encontraron registros</MudText>
+    </NoRecordsContent>
+    <LoadingContent>
+        <MudText>Cargando...</MudText>
+    </LoadingContent>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+@code {
+    [Inject]
+    private LocalHttpService LocalHttpService { get; set; } = default;
+    private MudTable<LocalDto> table;
+    private IEnumerable<LocalDto> pagedData;
+    private int totalItems;
+    private string searchString = null;
+
+    private async Task<TableData<LocalDto>> ServerReload(TableState state, CancellationToken token)
+    {
+        try
+        {
+            var response = await LocalHttpService.GetLocalAsync();
+            if (response?.Success == true && response.Data != null)
+            {
+                var data = response.Data;
+
+                data = data.Where(x =>
+                        {
+                            if (string.IsNullOrWhiteSpace(searchString))
+                                return true;
+                            if (x.Nombre.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                                return true;
+                            if (x.Direccion.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                                return true;
+                            if ($"{x.Capacidad} {x.Fotos} {x.TerminosCondiciones}".Contains(searchString))
+                                return true;
+                            return false;
+                        }).ToArray();
+
+                totalItems = data.Count();
+
+                switch (state.SortLabel)
+                {
+                    case "Nombre":
+                        data = data.OrderByDirection(state.SortDirection, o => o.Nombre);
+                        break;
+                    case "Direccion":
+                        data = data.OrderByDirection(state.SortDirection, o => o.Direccion);
+                        break;
+                    case "Capacidad":
+                        data = data.OrderByDirection(state.SortDirection, o => o.Capacidad);
+                        break;
+                    case "Fotos":
+                        data = data.OrderByDirection(state.SortDirection, o => o.Fotos);
+                        break;
+                    case "TerminosCondiciones":
+                        data = data.OrderByDirection(state.SortDirection, o => o.TerminosCondiciones);
+                        break;
+                }
+
+                pagedData = data.Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+                return new TableData<LocalDto>() { TotalItems = totalItems, Items = pagedData };
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error en ServerReload: {ex}");
+        }
+        return new TableData<LocalDto> { TotalItems = 0, Items = new List<LocalDto>() };
+    }
+
+    private void OnSearch(string text)
+    {
+        searchString = text;
+        table.ReloadServerData();
+    }
+}
+
+
+@* @code {
+    [Inject]
+    private LocalHttpService LocalHttpService { get; set; } =  default;
+
+    private MudTable<LocalDto> table;
+    private string searchString = null;
+
+    private async Task<TableData<LocalDto>> ServerReload(TableState state, CancellationToken token)
+    {
+        try
+        {
+            var response = await LocalHttpService.GetLocalAsync();
+            if (response.Success && response.Data != null)
+            {
+                var data = response.Data.AsQueryable();
+
+                if (!string.IsNullOrWhiteSpace(searchString))
+                {
+                    data = data.Where(l =>
+                        l.Nombre.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+                        l.Direccion.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+                        l.Capacidad.ToString().Contains(searchString) ||
+                        l.Fotos.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+                        l.TerminosCondiciones.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+                    );
+                }
+
+                if (!string.IsNullOrEmpty(state.SortLabel))
+                {
+                    var propertyInfo = typeof(LocalDto).GetProperty(state.SortLabel, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+
+                    if (propertyInfo != null)
+                    {
+                        data = state.SortDirection == SortDirection.Ascending
+                            ? data.OrderBy(x => propertyInfo.GetValue(x, null))
+                            : data.OrderByDescending(x => propertyInfo.GetValue(x, null));
+                    }
+                    else
+                    {
+                        Console.WriteLine($"⚠ Advertencia: La propiedad '{state.SortLabel}' no existe en LocalDto.");
+                    }
+                }
+
+                // 📌 Paginación
+                var totalItems = data.Count();
+                var pagedData = data.Skip(state.Page * state.PageSize).Take(state.PageSize).ToList();
+
+                return new TableData<LocalDto> { TotalItems = totalItems, Items = pagedData };
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error en ServerReload: {ex.Message}");
+        }
+
+        return new TableData<LocalDto> { TotalItems = 0, Items = new List<LocalDto>() };
+    }
+
+    private void OnSearch(string text)
+    {
+        searchString = text;
+        table.ReloadServerData();
+    }
+}
+ *@

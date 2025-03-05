@@ -1,0 +1,108 @@
+﻿@page "/lista"
+@using System.Threading
+@using Dcode.Caetering.Application.Dto
+@using Dcode.Caetering.Application.HttpServices
+@using System.Linq.Dynamic.Core
+@using System.Reflection
+
+@* MudTable con ServerReload sin Busqueda Solo Ordenamiento*@
+
+<MudTable ServerData="ServerReload" Dense="true" Hover="true">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Locales</MudText>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>
+            <MudTableSortLabel SortLabel="Nombre" T="LocalDto">Nombre</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortLabel="Nombre" T="LocalDto">Dirección</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortLabel="Capacidad" T="LocalDto">Capacidad</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortLabel="Fotos" T="LocalDto">Fotos</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortLabel="TerminosCondiciones" T="LocalDto">Términos y Condiciones</MudTableSortLabel>
+        </MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Nombre">@context.Nombre</MudTd>
+        <MudTd DataLabel="Dirección">@context.Direccion</MudTd>
+        <MudTd DataLabel="Capacidad">@context.Capacidad</MudTd>
+        <MudTd DataLabel="Fotos">@context.Fotos</MudTd>
+        <MudTd DataLabel="Términos y Condiciones">@context.TerminosCondiciones</MudTd>
+    </RowTemplate>
+    <NoRecordsContent>
+        <MudText>No se encontraron registros</MudText>
+    </NoRecordsContent>
+    <LoadingContent>
+        <MudText>Cargando...</MudText>
+    </LoadingContent>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+@code {
+    [Inject]
+    private LocalHttpService LocalHttpService { get; set; }
+
+    private async Task<TableData<LocalDto>> ServerReload(TableState state, CancellationToken token)
+    {
+
+        try
+        {
+            var response = await LocalHttpService.GetLocalAsync();
+            if (response.Success && response.Data != null)
+            {
+
+                var sortedData = response.Data.AsQueryable();
+
+                // if (!string.IsNullOrEmpty(state.SortLabel))
+                // {
+                //     sortedData = state.SortDirection == SortDirection.Ascending
+                //         ? sortedData.OrderBy(state.SortLabel)
+                //         : sortedData.OrderByDescending(state.SortLabel);
+
+
+                // }
+
+                if (!string.IsNullOrEmpty(state.SortLabel))
+                {
+                    var propertyInfo = typeof(LocalDto).GetProperty(state.SortLabel, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+
+                    if (propertyInfo != null)
+                    {
+                        sortedData = state.SortDirection == SortDirection.Ascending
+                            ? sortedData.OrderBy(x => propertyInfo.GetValue(x, null))
+                            : sortedData.OrderByDescending(x => propertyInfo.GetValue(x, null));
+                    }
+                    else
+                    {
+                        Console.WriteLine($"⚠ Advertencia: La propiedad '{state.SortLabel}' no existe en LocalDto.");
+                    }
+                }
+
+                var totalItems = sortedData.Count();
+                var pagedData = sortedData.Skip(state.Page * state.PageSize).Take(state.PageSize).ToList();
+
+                return new TableData<LocalDto> { TotalItems = totalItems, Items = pagedData };
+            }
+            else
+            {
+                return new TableData<LocalDto> { TotalItems = 0, Items = new List<LocalDto>() };
+            }
+        }
+        catch (Exception ex)
+        {
+            // Manejar errores
+            Console.WriteLine($"Error: {ex.Message}");
+            return new TableData<LocalDto> { TotalItems = 0, Items = new List<LocalDto>() };
+        }
+    }
+
+
+}

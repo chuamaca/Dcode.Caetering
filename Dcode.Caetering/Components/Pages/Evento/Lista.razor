@@ -1,0 +1,108 @@
+﻿@page "/evento/lista"
+@using Dcode.Caetering.Application.Dto
+
+@* MudTable con ServerReload con Busqueda*@
+
+
+<MudTable ServerData="ServerReload" Dense="true" Hover="true" @ref="table">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Listado de Eventos</MudText>
+        <MudSpacer />
+        <MudTextField T="string" ValueChanged="@(s=>OnSearch(s))" Placeholder="Search" Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh><MudTableSortLabel SortLabel="Nombre" T="Evento">Nombre</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="Descripcion" T="Evento">Descripcion</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="Capacidad" T="Evento">Capacidad</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="EstadoEvento" T="Evento">EstadoEvento</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="Nombre" T="Evento">Nombre</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="Direccion" T="Evento">Direccion</MudTableSortLabel></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Nombre">@context.Nombre</MudTd>
+        <MudTd DataLabel="Dirección">@context.Descripcion</MudTd>
+        <MudTd DataLabel="Capacidad">@context.Fecha</MudTd>
+        <MudTd DataLabel="Fotos">@context.EstadoEvento</MudTd>
+        <MudTd DataLabel="Términos y Condiciones">@context.Local.Nombre</MudTd>
+        <MudTd DataLabel="Términos y Condiciones">@context.Local.Direccion</MudTd>
+    </RowTemplate>
+    <NoRecordsContent>
+        <MudText>No se encontraron registros</MudText>
+    </NoRecordsContent>
+    <LoadingContent>
+        <MudText>Cargando...</MudText>
+    </LoadingContent>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+@code {
+    [Inject]
+    private EventoHttpService eventoHttpService { get; set; } = default;
+    private MudTable<Evento> table;
+    private IEnumerable<Evento> pagedData;
+    private int totalItems;
+    private string searchString = null;
+
+    private async Task<TableData<Evento>> ServerReload(TableState state, CancellationToken token)
+    {
+        try
+        {
+            var response = await eventoHttpService.GetEventoAsync();
+            if (response?.Success == true && response.Data != null)
+            {
+                var data = response.Data;
+
+                data = data.Where(x =>
+                        {
+                            if (string.IsNullOrWhiteSpace(searchString))
+                                return true;
+                            if (x.Nombre.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                                return true;
+                            if (x.Descripcion.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                                return true;
+                            if ($"{x.Fecha} {x.Local.Nombre} {x.Local.Direccion}".Contains(searchString))
+                                return true;
+                            return false;
+                        }).ToArray();
+
+                totalItems = data.Count();
+
+                switch (state.SortLabel)
+                {
+                    case "Nombre":
+                        data = data.OrderByDirection(state.SortDirection, o => o.Nombre);
+                        break;
+                    case "Direccion":
+                        data = data.OrderByDirection(state.SortDirection, o => o.Descripcion);
+                        break;
+                    case "Capacidad":
+                        data = data.OrderByDirection(state.SortDirection, o => o.LocalID);
+                        break;
+                    case "Fotos":
+                        data = data.OrderByDirection(state.SortDirection, o => o.Local.Nombre);
+                        break;
+                    case "TerminosCondiciones":
+                        data = data.OrderByDirection(state.SortDirection, o => o.Local.Direccion);
+                        break;
+                }
+
+                pagedData = data.Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+                return new TableData<Evento>() { TotalItems = totalItems, Items = pagedData };
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error en ServerReload: {ex}");
+        }
+        return new TableData<Evento> { TotalItems = 0, Items = new List<Evento>() };
+    }
+
+    private void OnSearch(string text)
+    {
+        searchString = text;
+        table.ReloadServerData();
+    }
+}

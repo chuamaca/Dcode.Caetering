@@ -9,7 +9,8 @@
         {
             services.AddMapperConfiguration();
 
-            services.AddScoped<LocalHttService>();
+            services.AddScoped<LocalHttpService>();
+            services.AddScoped<EventoHttpService>();
             return services;
         }
 
