@@ -4,7 +4,7 @@
 @* MudTable con ServerReload con Busqueda*@
 
 
-<MudTable ServerData="ServerReload" Dense="true" Hover="true" @ref="table">
+<MudTable ServerData="ServerReload" Dense="true" Hover="true" Striped="true" @ref="table">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Listado de Eventos</MudText>
         <MudSpacer />
@@ -15,17 +15,17 @@
         <MudTh><MudTableSortLabel SortLabel="Nombre" T="Evento">Nombre</MudTableSortLabel></MudTh>
         <MudTh><MudTableSortLabel SortLabel="Descripcion" T="Evento">Descripcion</MudTableSortLabel></MudTh>
         <MudTh><MudTableSortLabel SortLabel="Capacidad" T="Evento">Capacidad</MudTableSortLabel></MudTh>
-        <MudTh><MudTableSortLabel SortLabel="EstadoEvento" T="Evento">EstadoEvento</MudTableSortLabel></MudTh>
-        <MudTh><MudTableSortLabel SortLabel="Nombre" T="Evento">Nombre</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="Local" T="Evento">Local</MudTableSortLabel></MudTh>
         <MudTh><MudTableSortLabel SortLabel="Direccion" T="Evento">Direccion</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="EstadoEvento" T="Evento">EstadoEvento</MudTableSortLabel></MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="Nombre">@context.Nombre</MudTd>
-        <MudTd DataLabel="Dirección">@context.Descripcion</MudTd>
-        <MudTd DataLabel="Capacidad">@context.Fecha</MudTd>
-        <MudTd DataLabel="Fotos">@context.EstadoEvento</MudTd>
+        <MudTd DataLabel="Descripcion">@context.Descripcion</MudTd>
+        <MudTd DataLabel="Capacidad">@context.Local.Capacidad</MudTd>
         <MudTd DataLabel="Términos y Condiciones">@context.Local.Nombre</MudTd>
         <MudTd DataLabel="Términos y Condiciones">@context.Local.Direccion</MudTd>
+        <MudTd DataLabel="Estado Evento">@context.EstadoEvento</MudTd>
     </RowTemplate>
     <NoRecordsContent>
         <MudText>No se encontraron registros</MudText>
@@ -75,16 +75,16 @@
                     case "Nombre":
                         data = data.OrderByDirection(state.SortDirection, o => o.Nombre);
                         break;
-                    case "Direccion":
+                    case "Descripcion":
                         data = data.OrderByDirection(state.SortDirection, o => o.Descripcion);
                         break;
                     case "Capacidad":
-                        data = data.OrderByDirection(state.SortDirection, o => o.LocalID);
+                        data = data.OrderByDirection(state.SortDirection, o => o.Local.Capacidad);
                         break;
-                    case "Fotos":
+                    case "Local":
                         data = data.OrderByDirection(state.SortDirection, o => o.Local.Nombre);
                         break;
-                    case "TerminosCondiciones":
+                    case "Direccion":
                         data = data.OrderByDirection(state.SortDirection, o => o.Local.Direccion);
                         break;
                 }

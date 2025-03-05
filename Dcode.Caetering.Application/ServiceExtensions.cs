@@ -1,6 +1,7 @@
 ﻿namespace Dcode.Caetering.Application
 {
     using Dcode.Caetering.Application.HttpServices;
+    using Microsoft.Extensions.DependencyInjection;
     using System.Net.Http.Headers;
     public static class ServiceExtensions
     {
@@ -21,15 +22,15 @@
             {
 
                 //llama al servicio de autenticacion para obtener el token
-                var authHttpService = services.BuildServiceProvider().GetRequiredService<AuthHttpService>();
-                var authDto = new AuthDto
-                {
-                    UserName ="admin",
-                    Password = "admin"
-                };
+                //var authHttpService = services.BuildServiceProvider().GetRequiredService<AuthHttpService>();
+                //var authDto = new AuthDto
+                //{
+                //    UserName ="admin",
+                //    Password = "admin"
+                //};
 
-                var response = await authHttpService.LoginAsync(authDto);
-                var token = response.Data.Token;
+                //var response = await authHttpService.LoginAsync(authDto);
+                //var token = response.Data.Token;
 
                 client.BaseAddress = new Uri(configuration["ApiExternal:Url"]) ?? throw new ArgumentNullException("ApiExternal:Url");
                 client.DefaultRequestHeaders.Add("Accept", "application/json");

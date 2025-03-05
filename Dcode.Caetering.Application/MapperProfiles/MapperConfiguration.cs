@@ -1,4 +1,6 @@
-﻿namespace Dcode.Caetering.Application.MapperProfiles
+﻿using Microsoft.Extensions.DependencyInjection;
+
+namespace Dcode.Caetering.Application.MapperProfiles
 {
     public static class MapperConfiguration
     {
