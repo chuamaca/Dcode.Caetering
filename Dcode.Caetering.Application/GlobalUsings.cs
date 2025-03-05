@@ -2,8 +2,9 @@
 global using Dcode.Caetering.Application.Constante;
 global using Dcode.Caetering.Application.Dto;
 global using Dcode.Caetering.Application.MapperProfiles;
+global using Microsoft.Extensions.Configuration;
+global using Dcode.Caetering.Application.Constante;
+global using Dcode.Caetering.Application.Dto;
 global using Dcode.Caetering.Application.ResponseUtils;
 global using Dcode.Caetering.Application.Utils;
-global using Microsoft.Extensions.Configuration;
-global using Microsoft.Extensions.DependencyInjection;
 global using System.Net.Http.Json;
