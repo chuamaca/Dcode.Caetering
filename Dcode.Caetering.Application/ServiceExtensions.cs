@@ -11,7 +11,6 @@
 
             services.AddScoped<LocalHttpService>();
             services.AddScoped<EventoHttpService>();
-            services.AddScoped<LocalHttService>();
             services.AddScoped<AuthHttpService>();
             return services;
         }

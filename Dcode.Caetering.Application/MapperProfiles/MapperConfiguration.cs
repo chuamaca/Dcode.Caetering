@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dcode.Caetering.Application.MapperProfiles
+﻿namespace Dcode.Caetering.Application.MapperProfiles
 {
     public static class MapperConfiguration
     {
