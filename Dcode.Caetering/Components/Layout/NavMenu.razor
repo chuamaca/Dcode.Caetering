@@ -1,12 +1,52 @@
-﻿<MudNavMenu>
-    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-    <MudNavLink Href="counter" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink>
-    <MudNavLink Href="weather" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Weather</MudNavLink>
-    <MudNavLink Href="local/list" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Lista Comun</MudNavLink>
-    <MudNavLink Href="table" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Table example Off ServerReload</MudNavLink>
-    <MudNavLink Href="lista" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Lista Server ServerReload Sin Search</MudNavLink>
-    <MudNavLink Href="busqueda" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Local Template</MudNavLink>
-    <MudNavLink Href="evento/lista" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Eventos</MudNavLink>
-</MudNavMenu>
+﻿@using Dcode.Caetering.Utils
+@using Microsoft.AspNetCore.Components.Authorization
 
+<MudNavMenu>
+    @if (isAuthenticated)
+    {
+        <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+        <MudNavLink Href="counter" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink>
+        <MudNavLink Href="weather" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Weather</MudNavLink>
+        <MudNavLink Href="local/list" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Lista Comun</MudNavLink>
+        <MudNavLink Href="table" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Table example Off ServerReload</MudNavLink>
+        <MudNavLink Href="lista" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Lista Server ServerReload Sin Search</MudNavLink>
+        <MudNavLink Href="busqueda" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Local Template</MudNavLink>
+        <MudNavLink Href="evento/lista" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Eventos</MudNavLink>
+        <MudNavLink Href="login" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Login</MudNavLink>
+        <MudNavLink OnClick="CerrarSesion" Icon="@Icons.Material.Filled.ExitToApp">
+            Cerrar Sesión
+        </MudNavLink>
+    }
+    </MudNavMenu>
+    @code {
+    private bool isAuthenticated = false;
 
+    [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+    [Inject] private AuthHttpService AuthService { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
+
+        if (AuthStateProvider is CustomAuthStateProvider customAuthStateProvider)
+        {
+            customAuthStateProvider.AuthenticationStateChanged += HandleAuthenticationStateChanged;
+        }
+    }
+
+    private async void HandleAuthenticationStateChanged(Task<AuthenticationState> task)
+    {
+        var newAuthState = await task;
+        isAuthenticated = newAuthState.User.Identity?.IsAuthenticated ?? false;
+        StateHasChanged();
+    }
+
+    private async Task CerrarSesion()
+    {
+        await AuthService.Logout(); // Ahora es un método async
+        isAuthenticated = false;
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+}

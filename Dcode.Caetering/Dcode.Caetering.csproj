@@ -8,7 +8,9 @@
 
 
   <ItemGroup>
-    <PackageReference Include="MudBlazor" Version="7.*" />
+    <PackageReference Include="MudBlazor" Version="8.3.0" />
+    <PackageReference Include="Solutaris.InfoWARE.ProtectedBrowserStorage" Version="1.0.2" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.6.0" />
     <PackageReference Include="System.Linq.Dynamic.Core" Version="1.6.0.2" />
   </ItemGroup>
 

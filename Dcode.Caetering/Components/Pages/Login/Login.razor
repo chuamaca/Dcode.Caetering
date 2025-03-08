@@ -1,0 +1,90 @@
+﻿@page "/login"
+@using Dcode.Caetering.Application.Dto
+@using Dcode.Caetering.Utils
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+@inject AuthHttpService authHttpService
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    <MudCard>
+        <MudCardContent>
+            <MudText Typo="Typo.h5" Class="text-center">Iniciar Sesión</MudText>
+
+            <EditForm Model="@modeloUsuario" OnValidSubmit="@Authenticar">
+                <DataAnnotationsValidator />
+                <ValidationSummary /> <!-- Agrega esto para mostrar errores de validación -->
+                <MudTextField Label="Usuario" @bind-Value="@modeloUsuario.UserName" Required="true" />
+                <MudTextField Label="Contraseña" @bind-Value="@modeloUsuario.Password" InputType="InputType.Password" Required="true" />
+                <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" FullWidth="true" Disabled="@isLoading">
+                    @if (isLoading)
+                    {
+                        <MudProgressCircular Indeterminate="true" Size="@Size.Small" />
+                    }
+                    else
+                    {
+                        <span>Ingresar</span>
+                    }
+                </MudButton>
+            </EditForm>
+
+            @if (showError)
+            {
+                <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+            }
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+    private AuthDto modeloUsuario = new();
+    private string errorMessage = string.Empty;
+    private bool showError = false;
+    private bool isLoading = false;
+
+    private async Task Authenticar()
+    {
+        Console.WriteLine("Método Authenticar ejecutado"); // Mensaje de depuración
+        try
+        {
+            isLoading = true;
+            showError = false;
+            errorMessage = string.Empty;
+
+            var response = await authHttpService.LoginAsync(modeloUsuario);
+
+            if (response?.Success == true && response.Data != null)
+            {
+                if (AuthStateProvider is CustomAuthStateProvider customAuthStateProvider)
+                {
+                    await customAuthStateProvider.SetUserAuthenticated(response.Data.Token);
+                }
+
+                Navigation.NavigateTo("/"); // Redirige a la página principal
+            }
+            else
+            {
+                errorMessage = response?.Message ?? "Usuario o contraseña incorrectos.";
+                showError = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error en la autenticación. Inténtelo más tarde.";
+            showError = true;
+            Console.WriteLine($"[ERROR] Authenticar: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(modeloUsuario.Token))
+        {
+            await authHttpService.SetTokenAsync(modeloUsuario.Token);
+        }
+    }
+}
